@@ -10,7 +10,6 @@ class ConvBNRelu(nn.Module):
         super().__init__()
         self.block = nn.Sequential(
             nn.Conv2d(cin, cout, k, s, k // 2),
-            nn.BatchNorm2d(cout),
             nn.LeakyReLU(0.2, inplace=True),
         )
 
@@ -50,7 +49,7 @@ class Encoder(nn.Module):
         u2 = self.up2(m + d2)
         u1 = self.up1(u2 + d1)
         residual = torch.tanh(self.conv_out(u1))
-        stego = image + residual * 0.05
+        stego = image + residual
         return torch.clamp(stego, -1, 1), residual
 
 class Decoder(nn.Module):
