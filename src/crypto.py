@@ -4,7 +4,7 @@ from Crypto.Random import get_random_bytes
 
 class CertificateAuthority:
     def __init__(self, key=None):
-        self.key = key if key else get_random_bytes(16)
+        self.key = key if key else get_random_bytes(32)
 
     def encrypt_metadata(self, metadata: dict) -> bytes:
         data_str = json.dumps(metadata).encode('utf-8')
