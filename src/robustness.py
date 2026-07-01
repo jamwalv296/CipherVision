@@ -23,7 +23,6 @@ class RobustnessLayer(nn.Module):
         return torch.clamp(F.conv2d(x, kernel_tensor, padding=radius, groups=3), 0.0, 1.0)
 
     def jpeg_approximation(self, x, quality=50):
-        # Differentiable high-frequency drop simulation using random quantization matrix masking
         b, c, h, w = x.size()
         x_dct = torch.fft.fft2(x)
         mask = torch.ones_like(x_dct)
@@ -34,10 +33,10 @@ class RobustnessLayer(nn.Module):
 
     def color_jitter(self, x, brightness=0.1, contrast=0.1):
         if brightness > 0:
-            b_factor = torch.uniform_(torch.empty(1, device=x.device), -brightness, brightness)
+            b_factor = torch.empty(1, device=x.device).uniform_(-brightness, brightness)
             x = x + b_factor
         if contrast > 0:
-            c_factor = torch.uniform_(torch.empty(1, device=x.device), 1.0 - contrast, 1.0 + contrast)
+            c_factor = torch.empty(1, device=x.device).uniform_(1.0 - contrast, 1.0 + contrast)
             x = (x - 0.5) * c_factor + 0.5
         return torch.clamp(x, 0.0, 1.0)
 
