@@ -11,8 +11,8 @@ class Decoder(nn.Module):
 
         self.blocks = nn.ModuleList([RDBWithAttention(channels) for _ in range(num_blocks)])
 
-        self.pool = nn.AdaptiveAvgPool2d(1)
-        self.fc1 = nn.Linear(channels, channels * 2)
+        self.pool = nn.AdaptiveAvgPool2d((16, 16))
+        self.fc1 = nn.Linear(channels * 16 * 16, channels * 2)
         self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
         self.fc2 = nn.Linear(channels * 2, payload_bits)
 

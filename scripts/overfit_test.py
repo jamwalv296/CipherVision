@@ -43,7 +43,7 @@ def run_overfit_test(args):
 
     prepare_overfit_set(args.source_dir, args.overfit_dir, args.num_images)
 
-    dataset = CipherVisionDataset(args.overfit_dir, patch_size=args.patch_size)
+    dataset = CipherVisionDataset(args.overfit_dir, patch_size=args.patch_size, overfit_mode=True)
     loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=0)
 
     encoder = Encoder(payload_bits=args.payload_bits, channels=args.channels, num_blocks=args.num_blocks).to(device)

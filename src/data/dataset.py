@@ -15,9 +15,10 @@ IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp"}
 
 
 class CipherVisionDataset(Dataset):
-    def __init__(self, image_dir: str, patch_size: int = 256):
+    def __init__(self, image_dir: str, patch_size: int = 256, overfit_mode: bool = False):
         self.image_dir = image_dir
         self.patch_size = patch_size
+        self.overfit_mode = overfit_mode
         self.image_paths = [
             os.path.join(image_dir, f)
             for f in sorted(os.listdir(image_dir))
@@ -28,6 +29,14 @@ class CipherVisionDataset(Dataset):
 
         self.random_crop = T.RandomCrop(patch_size)
         self.to_tensor = T.ToTensor()
+
+        self.static_payloads = {}
+        if self.overfit_mode:
+            print("--- CipherVisionDataset initialized in OVERFIT MODE (Static Payloads) ---")
+            for idx, path in enumerate(self.image_paths):
+                img = self._load_image(path)
+                temp_patch = img.crop((0, 0, self.patch_size, self.patch_size))
+                self.static_payloads[idx] = self._generate_payload_bits(temp_patch.tobytes())
 
     def __len__(self):
         return len(self.image_paths)
@@ -61,6 +70,9 @@ class CipherVisionDataset(Dataset):
         tensor = self.to_tensor(img)
         tensor = tensor * 2.0 - 1.0
 
-        payload_bits = self._generate_payload_bits(img.tobytes())
+        if self.overfit_mode:
+            payload_bits = self.static_payloads[idx]
+        else:
+            payload_bits = self._generate_payload_bits(img.tobytes())
 
         return tensor, payload_bits
