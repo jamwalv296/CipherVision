@@ -42,5 +42,5 @@ build/
 
 .DS_Store
 Thumbs.db
-data/
+/data/
 test_*.py
