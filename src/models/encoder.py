@@ -37,5 +37,5 @@ class Encoder(nn.Module):
 
         residual = self.tanh(self.conv_out(x))
         stego_image = cover_image + residual
-
+        stego_image = torch.clamp(stego_image, min=-1.0, max=1.0)
         return stego_image
