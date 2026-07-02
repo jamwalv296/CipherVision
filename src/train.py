@@ -38,13 +38,15 @@ def train(args):
     os.makedirs(args.checkpoint_dir, exist_ok=True)
 
     start_epoch = 0
+    best_bit_acc = 0.0
     if args.resume and os.path.exists(args.resume):
         checkpoint = torch.load(args.resume, map_location=device)
         encoder.load_state_dict(checkpoint["encoder"])
         decoder.load_state_dict(checkpoint["decoder"])
         optimizer.load_state_dict(checkpoint["optimizer"])
         start_epoch = checkpoint["epoch"] + 1
-        print(f"resumed from epoch {start_epoch}")
+        best_bit_acc = checkpoint.get("avg_bit_acc", 0.0)
+        print(f"resumed from epoch {start_epoch}, best_bit_acc so far {best_bit_acc:.4f}")
 
     for epoch in range(start_epoch, args.epochs):
         encoder.train()
@@ -90,17 +92,28 @@ def train(args):
         avg_bit_acc = epoch_bit_acc / num_batches
         print(f"=== epoch {epoch} done | avg_loss {avg_loss:.5f} | avg_bit_acc {avg_bit_acc:.4f} ===")
 
+        checkpoint_payload = {
+            "epoch": epoch,
+            "encoder": encoder.state_dict(),
+            "decoder": decoder.state_dict(),
+            "optimizer": optimizer.state_dict(),
+            "avg_loss": avg_loss,
+            "avg_bit_acc": avg_bit_acc,
+        }
+
+        latest_path = os.path.join(args.checkpoint_dir, "latest.pt")
+        torch.save(checkpoint_payload, latest_path)
+
+        if avg_bit_acc > best_bit_acc:
+            best_bit_acc = avg_bit_acc
+            best_path = os.path.join(args.checkpoint_dir, "best.pt")
+            torch.save(checkpoint_payload, best_path)
+            print(f"new best bit_acc {best_bit_acc:.4f}, saved: {best_path}")
+
         if (epoch + 1) % args.checkpoint_interval == 0 or epoch == args.epochs - 1:
             checkpoint_path = os.path.join(args.checkpoint_dir, f"checkpoint_epoch{epoch}.pt")
-            torch.save({
-                "epoch": epoch,
-                "encoder": encoder.state_dict(),
-                "decoder": decoder.state_dict(),
-                "optimizer": optimizer.state_dict(),
-                "avg_loss": avg_loss,
-                "avg_bit_acc": avg_bit_acc,
-            }, checkpoint_path)
-            print(f"saved checkpoint: {checkpoint_path}")
+            torch.save(checkpoint_payload, checkpoint_path)
+            print(f"saved periodic checkpoint: {checkpoint_path}")
 
         if avg_bit_acc >= args.target_bit_acc:
             print(f"target bit accuracy {args.target_bit_acc} reached at epoch {epoch}, stopping early")
