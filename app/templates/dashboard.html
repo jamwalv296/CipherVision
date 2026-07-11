@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CipherVision Dashboard</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body class="bg-light">
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-8">
+
+            <div class="card shadow-lg border-0">
+
+                <div class="card-body p-5">
+
+                    <div class="text-center mb-5">
+
+                        <h1 class="fw-bold">
+                            CipherVision
+                        </h1>
+
+                        <p class="text-muted">
+                            AI Powered Invisible Image Ownership Verification
+                        </p>
+
+                    </div>
+
+                    <div class="row align-items-center mb-5">
+
+                        <div class="col-auto">
+
+                            <img
+                                src="{{ user.picture }}"
+                                width="80"
+                                height="80"
+                                class="rounded-circle">
+
+                        </div>
+
+                        <div class="col">
+
+                            <h3 class="mb-1">
+                                {{ user.name }}
+                            </h3>
+
+                            <p class="text-muted mb-0">
+                                {{ user.email }}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="d-grid gap-3">
+
+                        <a
+                            href="/embed"
+                            class="btn btn-primary btn-lg">
+
+                            Embed Watermark
+
+                        </a>
+
+                        <a
+                            href="/verify"
+                            class="btn btn-success btn-lg">
+
+                            Verify Ownership
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

@@ -40,4 +40,7 @@ class PayloadDecoder:
             ecc=recv_ecc,
         )
 
-        return int.from_bytes(data, "big")
+        return {
+            "identifier": data.hex().upper(),
+            "corrected_bits": nerr,
+        }

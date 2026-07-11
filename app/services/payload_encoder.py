@@ -8,9 +8,9 @@ class PayloadEncoder:
 
         self.bch = bchlib.BCH(t=8, m=7)
 
-    def encode(self, identifier: int):
+    def encode(self, identifier: str):
 
-        data = bytearray(identifier.to_bytes(8, "big"))
+        data = bytearray(bytes.fromhex(identifier))
 
         ecc = self.bch.encode(data)
 
