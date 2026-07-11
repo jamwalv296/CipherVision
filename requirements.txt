@@ -1,0 +1,13 @@
+torch
+torchvision
+numpy
+Pillow
+videoseal
+bchlib
+fastapi
+uvicorn
+python-dotenv
+sqlalchemy
+psycopg2-binary
+python-multipart
+huggingface-hub
