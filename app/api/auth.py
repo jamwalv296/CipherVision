@@ -91,3 +91,19 @@ async def auth_callback(request: Request):
     finally:
 
         db.close()
+
+@router.get("/logout")
+async def logout():
+
+    response = RedirectResponse(
+        url="/",
+        status_code=302,
+    )
+
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        samesite="lax",
+    )
+
+    return response
