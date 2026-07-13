@@ -152,12 +152,35 @@ async def embed_image(
             payload,
         )
 
-        return FileResponse(
-            output_path,
-            filename="watermarked.png",
-            media_type="image/png",
+        filename = os.path.basename(output_path)
+
+        return templates.TemplateResponse(
+            request=request,
+            name="embed.html",
+            context={
+                "success": True,
+                "download_file": filename,
+            },
         )
 
     finally:
 
         db.close()
+
+
+@router.get("/download/{filename}")
+async def download_file(filename: str):
+
+    path = os.path.join(
+        tempfile.gettempdir(),
+        filename,
+    )
+
+    if not os.path.exists(path):
+        return RedirectResponse("/embed")
+
+    return FileResponse(
+        path,
+        filename="watermarked.png",
+        media_type="image/png",
+    )

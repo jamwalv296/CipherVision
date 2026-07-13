@@ -53,10 +53,22 @@ async def verify_image(
     if token is None:
         return RedirectResponse("/")
 
-    if get_user_id(token) is None:
+    current_user_id = get_user_id(token)
+
+    if current_user_id is None:
         return RedirectResponse("/")
 
     suffix = os.path.splitext(file.filename)[1].lower()
+
+    if suffix not in [".png", ".jpg", ".jpeg"]:
+
+        return templates.TemplateResponse(
+            request=request,
+            name="verify.html",
+            context={
+                "error": "Please upload a PNG or JPEG image.",
+            },
+        )
 
     with tempfile.NamedTemporaryFile(
         delete=False,
@@ -67,11 +79,67 @@ async def verify_image(
 
         image_path = temp.name
 
-    bits = DetectService.extract(image_path)
+    try:
 
-    result = decoder.decode(bits)
+        bits = DetectService.extract(
+            image_path
+        )
 
-    if result is None:
+        result = decoder.decode(
+            bits
+        )
+
+        if result is None:
+
+            return templates.TemplateResponse(
+                request=request,
+                name="verify.html",
+                context={
+                    "error": "Unable to verify ownership.",
+                },
+            )
+
+        owner_id = result["identifier"]
+
+        db = SessionLocal()
+
+        try:
+
+            owner = (
+                db.query(User)
+                .filter(User.owner_id == owner_id)
+                .first()
+            )
+
+            if owner is None:
+
+                return templates.TemplateResponse(
+                    request=request,
+                    name="verify.html",
+                    context={
+                        "error": "Owner not found.",
+                    },
+                )
+
+            is_owner = str(owner.id) == current_user_id
+
+            return templates.TemplateResponse(
+                request=request,
+                name="verify.html",
+                context={
+                    "verified": True,
+                    "is_owner": is_owner,
+                    "name": owner.full_name,
+                    "email": owner.email,
+                    "picture": owner.picture_url,
+                },
+            )
+
+        finally:
+
+            db.close()
+
+    except Exception:
 
         return templates.TemplateResponse(
             request=request,
@@ -81,39 +149,8 @@ async def verify_image(
             },
         )
 
-    owner_id = result["identifier"]
-
-    db = SessionLocal()
-
-    try:
-
-        user = (
-            db.query(User)
-            .filter(User.owner_id == owner_id)
-            .first()
-        )
-
-        if user is None:
-
-            return templates.TemplateResponse(
-                request=request,
-                name="verify.html",
-                context={
-                    "error": "Owner not found.",
-                },
-            )
-
-        return templates.TemplateResponse(
-            request=request,
-            name="verify.html",
-            context={
-                "verified": True,
-                "name": user.full_name,
-                "email": user.email,
-                "picture": user.picture_url,
-            },
-        )
-
     finally:
 
-        db.close()
+        if os.path.exists(image_path):
+
+            os.remove(image_path)

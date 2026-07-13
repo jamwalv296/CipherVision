@@ -1,122 +1,430 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Embed Watermark | CipherVision</title>
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+        body{
+            font-family:"Manrope",sans-serif;
+            background:#fbfaf8;
+            min-height:100vh;
+            color:#111827;
+            position:relative;
+            overflow-x:hidden;
+        }
+        body::before{
+            content:"";
+            position:fixed;
+            inset:0;
+            background-image:
+            radial-gradient(circle at 20% 20%, rgba(90,90,200,.05), transparent 20%),
+            radial-gradient(circle at 80% 30%, rgba(70,120,240,.05), transparent 20%),
+            radial-gradient(circle at 35% 80%, rgba(150,70,220,.05), transparent 22%);
+            animation:bgMove 18s ease-in-out infinite alternate;
+            z-index:-2;
+        }
+        body::after{
+            content:"";
+            position:fixed;
+            inset:0;
+            opacity:.25;
+            background-image:
+            repeating-radial-gradient(
+            circle at center,
+            rgba(0,0,0,.02) 0,
+            rgba(0,0,0,.02) 1px,
+            transparent 1px,
+            transparent 28px
+            );
+            z-index:-3;
+        }
+        @keyframes bgMove{
+            from{
+                transform:translate(-25px,-10px);
+            }
+            to{
+                transform:translate(25px,20px);
+            }
+        }
+        .page{
+            width:100%;
+            min-height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            padding:60px 20px;
+        }
+        .container-box{
+            width:100%;
+            max-width:760px;
+        }
+        .back{
+            display:inline-flex;
+            align-items:center;
+            gap:10px;
+            text-decoration:none;
+            color:#4b5563;
+            font-weight:600;
+            margin-bottom:40px;
+            transition:.25s;
+        }
+        .back:hover{
+            color:#2563eb;
+        }
+        h1{
+            font-size:3rem;
+            font-weight:800;
+            text-align:center;
+            margin-bottom:16px;
+        }
+        .subtitle{
+            max-width:560px;
+            margin:auto;
+            text-align:center;
+            color:#6b7280;
+            line-height:1.8;
+            margin-bottom:45px;
+        }
+        .upload-card{
+            background:white;
+            border-radius:26px;
+            border:2px dashed #cbd5e1;
+            padding:60px;
+            text-align:center;
+            transition:.35s;
+            box-shadow:0 20px 55px rgba(0,0,0,.05);
+        }
+        .upload-card:hover{
+            border-color:#2563eb;
+            transform:translateY(-3px);
+            box-shadow:0 28px 65px rgba(37,99,235,.10);
+        }
+        .upload-icon{
+            width:88px;
+            height:88px;
+            margin:auto;
+            margin-bottom:24px;
+            border-radius:50%;
+            background:linear-gradient(135deg, #eef2ff, #ffffff);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:2rem;
+            color:#4f46e5;
+        }
+        .upload-title{
+            font-size:1.45rem;
+            font-weight:700;
+            margin-bottom:10px;
+        }
+        .upload-subtitle{
+            color:#6b7280;
+            margin-bottom:30px;
+        }
+        input[type=file]{
+            display:none;
+        }
+        .browse{
+            display:inline-block;
+            padding:14px 34px;
+            border-radius:14px;
+            background:#2563eb;
+            color:white;
+            cursor:pointer;
+            font-weight:700;
+            transition:.25s;
+            text-decoration:none;
+        }
+        .browse:hover{
+            background:#1d4ed8;
+        }
+        .file-name{
+            margin-top:22px;
+            color:#374151;
+            font-weight:600;
+            min-height:24px;
+        }
+        .formats{
+            margin-top:18px;
+            color:#9ca3af;
+            font-size:.95rem;
+        }
+        .action{
+            margin-top:40px;
+            display:flex;
+            justify-content:center;
+        }
+        .embed-btn{
+            width:320px;
+            height:58px;
+            border:none;
+            border-radius:16px;
+            background:#2563eb;
+            color:white;
+            font-size:1.05rem;
+            font-weight:700;
+            transition:.25s;
+        }
+        .embed-btn:hover{
+            transform:translateY(-3px);
+            background:#1d4ed8;
+            box-shadow:0 18px 40px rgba(37,99,235,.22);
+        }
+        .status{
+            margin-top:35px;
+        }
+        .alert{
+            border:none;
+            border-radius:18px;
+            padding:22px 24px;
+            box-shadow:0 15px 40px rgba(0,0,0,.06);
+        }
+        .alert h5{
+            font-weight:700;
+            margin-bottom:8px;
+        }
+        .alert-danger{
+            background:#fff5f5;
+            color:#991b1b;
+        }
+        .alert-info{
+            background:#eff6ff;
+            color:#1d4ed8;
+        }
+        .alert-success{
+            background:#f0fdf4;
+            color:#166534;
+        }
+        .loading-overlay{
+            position:fixed;
+            inset:0;
+            background:rgba(255,255,255,.86);
+            backdrop-filter:blur(8px);
+            display:none;
+            align-items:center;
+            justify-content:center;
+            flex-direction:column;
+            z-index:9999;
+        }
+        .spinner{
+            width:72px;
+            height:72px;
+            border-radius:50%;
+            border:6px solid #dbeafe;
+            border-top:6px solid #2563eb;
+            animation:spin .9s linear infinite;
+            margin-bottom:24px;
+        }
+        @keyframes spin{
+            to{
+                transform:rotate(360deg);
+            }
+        }
+        .loading-title{
+            font-size:1.35rem;
+            font-weight:700;
+            margin-bottom:8px;
+        }
+        .loading-subtitle{
+            color:#6b7280;
+        }
+        @media(max-width:768px){
+            h1{
+                font-size:2.3rem;
+            }
+            .upload-card{
+                padding:38px 24px;
+            }
+            .embed-btn{
+                width:100%;
+            }
+        }
+    </style>
 </head>
-
-<body class="bg-light">
-
-<div class="container py-5">
-
-    <div class="row justify-content-center">
-
-        <div class="col-lg-8">
-
-            <div class="card shadow border-0">
-
-                <div class="card-body p-5">
-
-                    <h2 class="text-center fw-bold mb-4">
-
-                        Embed Watermark
-
-                    </h2>
-
-                    <p class="text-center text-muted mb-5">
-
-                        Upload an image to invisibly embed your ownership information.
-
-                    </p>
-
-                    {% if error %}
-
-                    <div class="alert alert-danger mb-4">
-
-                        <h5 class="mb-2">
-
-                            Embedding Blocked
-
-                        </h5>
-
-                        {{ error }}
-
-                    </div>
-
-                    {% endif %}
-
-                    {% if info %}
-
-                    <div class="alert alert-info mb-4">
-
-                        <h5 class="mb-2">
-
-                            Image Already Protected
-
-                        </h5>
-
-                        {{ info }}
-
-                    </div>
-
-                    {% endif %}
-
-                    <form
-                        action="/embed"
-                        method="post"
-                        enctype="multipart/form-data">
-
-                        <div class="mb-4">
-
-                            <input
-                                class="form-control form-control-lg"
-                                type="file"
-                                name="file"
-                                accept=".png,.jpg,.jpeg"
-                                required>
-
-                        </div>
-
-                        <div class="d-grid gap-3">
-
-                            <button
-                                type="submit"
-                                class="btn btn-primary btn-lg">
-
-                                Embed Watermark
-
-                            </button>
-
-                            <a
-                                href="/dashboard"
-                                class="btn btn-outline-secondary">
-
-                                Back to Dashboard
-
-                            </a>
-
-                        </div>
-
-                    </form>
-
-                </div>
-
-            </div>
-
-        </div>
-
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-title">Embedding Watermark...</div>
+        <div class="loading-subtitle">Please wait while CipherVision securely protects your artwork.</div>
     </div>
+    <div class="page">
+        <div class="container-box">
+            <a href="/dashboard" class="back">← Back to Dashboard</a>
+            <h1>Embed Watermark</h1>
+            <p class="subtitle">Securely embed an invisible ownership watermark into your artwork, photography or digital creation without affecting its visual quality.</p>
+            
+            {% if success %}
+            <div class="upload-card">
+                <div class="upload-icon" style="background: linear-gradient(135deg, #f0fdf4, #ffffff);">
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+                <div class="upload-title" style="color: #166534;">Watermark Embedded!</div>
+                <div class="upload-subtitle">Your asset has been successfully protected with an invisible watermark.</div>
+                <div class="action flex-column align-items-center gap-3">
+                    <a href="/download/{{ download_file }}"
+                    class="browse"
+                    style="background:#166534;width:320px;">
+                    Download Secured Image
+                    </a>
+                    <a href="/embed" class="back m-0 mt-2">← Protect Another Image</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="upload-card">
+                <form id="embedForm" action="/embed" method="post" enctype="multipart/form-data">
+                    <div class="upload-icon">
+                        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 16V4"/>
+                            <path d="M7 9L12 4L17 9"/>
+                            <path d="M4 20H20"/>
+                        </svg>
+                    </div>
+                    <div class="upload-title">Drag & Drop Image</div>
+                    <div class="upload-subtitle">or browse from your computer</div>
+                    <label class="browse" for="fileInput">Browse Files</label>
+                    <input id="fileInput" type="file" name="file" accept=".png,.jpg,.jpeg" required>
+                    <div class="file-name" id="fileName">No file selected</div>
+                    <div class="formats">Supported formats: PNG • JPG • JPEG</div>
+                    <div class="action">
+                        <button type="submit" class="embed-btn">Embed Watermark</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
 
-</div>
+            {% if error or info %}
+            <div
+                class="modal fade"
+                id="statusModal"
+                tabindex="-1"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg rounded-4">
+                        <div class="modal-header">
+                            {% if error %}
+                            <h5 class="modal-title text-danger">Embedding Blocked</h5>
+                            {% else %}
+                            <h5 class="modal-title text-primary">Image Already Protected</h5>
+                            {% endif %}
+                            <button
+                                type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal">
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            {% if error %}
+                                {{ error }}
+                            {% endif %}
+                            {% if info %}
+                                {{ info }}
+                            {% endif %}
+                        </div>
+                        <div class="modal-footer">
+                            <button
+                                type="button"
+                                class="btn btn-primary"
+                                data-bs-dismiss="modal">
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+            <script>
+                const uploadCard = document.querySelector(".upload-card");
+                const fileInput = document.getElementById("fileInput");
+                const fileName = document.getElementById("fileName");
+                const form = document.getElementById("embedForm");
+                const loadingOverlay = document.getElementById("loadingOverlay");
+                
+                if (fileInput && fileName) {
+                    fileInput.addEventListener("change", function(){
+                        if(fileInput.files.length === 0){
+                            fileName.textContent = "No file selected";
+                            return;
+                        }
+                        const file = fileInput.files[0];
+                        const allowedTypes = [
+                            "image/png",
+                            "image/jpeg"
+                        ];
+                        if(!allowedTypes.includes(file.type)){
+                            alert("Please upload a PNG or JPEG image.");
+                            fileInput.value = "";
+                            fileName.textContent = "No file selected";
+                            return;
+                        }
+                        fileName.textContent = file.name;
+                    });
+                }
+                
+                if (uploadCard && fileInput && fileName) {
+                    uploadCard.addEventListener("dragover", function(event){
+                        event.preventDefault();
+                        uploadCard.style.borderColor = "#2563eb";
+                        uploadCard.style.background = "#f8fbff";
+                    });
+                    uploadCard.addEventListener("dragleave", function(){
+                        uploadCard.style.borderColor = "#cbd5e1";
+                        uploadCard.style.background = "white";
+                    });
+                    uploadCard.addEventListener("drop", function(event){
+                        event.preventDefault();
+                        uploadCard.style.borderColor = "#cbd5e1";
+                        uploadCard.style.background = "white";
+                        const droppedFiles = event.dataTransfer.files;
+                        if(droppedFiles.length > 0){
+                            const file = droppedFiles[0];
+                            const allowedTypes = [
+                                "image/png",
+                                "image/jpeg"
+                            ];
+                            if(!allowedTypes.includes(file.type)){
+                                alert("Please upload a PNG or JPEG image.");
+                                return;
+                            }
+                            const dataTransferContainer = new DataTransfer();
+                            dataTransferContainer.items.add(file);
+                            fileInput.files = dataTransferContainer.files;
+                            fileName.textContent = file.name;
+                        }
+                    });
+                }
+                
+                if (form && fileInput && loadingOverlay) {
+                    form.addEventListener("submit", function(event){
+                        if(fileInput.files.length === 0){
+                            event.preventDefault();
+                            alert("Please select or drop an image file first.");
+                            return;
+                        }
+                        loadingOverlay.style.display = "flex";
+                    });
+                }
 
+                {% if error or info %}
+                const statusModal = new bootstrap.Modal(
+                    document.getElementById("statusModal")
+                );
+                statusModal.show();
+                {% endif %}
+            </script>
+        </div>
+    </div>
 </body>
-
 </html>

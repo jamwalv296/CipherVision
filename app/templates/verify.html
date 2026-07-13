@@ -1,118 +1,388 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Verify Ownership</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verify Ownership | CipherVision</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+body{
+    font-family:"Manrope",sans-serif;
+    background:#fbfaf8;
+    min-height:100vh;
+    color:#111827;
+    overflow-x:hidden;
+    position:relative;
+}
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background-image:
+    radial-gradient(circle at 20% 20%,rgba(55,160,90,.05),transparent 20%),
+    radial-gradient(circle at 80% 30%,rgba(50,140,220,.05),transparent 20%),
+    radial-gradient(circle at 35% 80%,rgba(90,90,220,.04),transparent 22%);
+    animation:bgMove 18s ease-in-out infinite alternate;
+    z-index:-2;
+}
+body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    opacity:.25;
+    background-image:
+    repeating-radial-gradient(circle at center,
+    rgba(0,0,0,.02) 0,
+    rgba(0,0,0,.02) 1px,
+    transparent 1px,
+    transparent 28px);
+    z-index:-3;
+}
+@keyframes bgMove{
+    from{transform:translate(-25px,-10px);}
+    to{transform:translate(25px,20px);}
+}
+.page{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:60px 20px;
+}
+.container-box{
+    width:100%;
+    max-width:760px;
+}
+.back{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    text-decoration:none;
+    color:#4b5563;
+    font-weight:600;
+    margin-bottom:40px;
+    transition:.25s;
+}
+.back:hover{
+    color:#16a34a;
+}
+h1{
+    text-align:center;
+    font-size:3rem;
+    font-weight:800;
+    margin-bottom:15px;
+}
+.subtitle{
+    max-width:570px;
+    margin:auto;
+    text-align:center;
+    color:#6b7280;
+    line-height:1.8;
+    margin-bottom:45px;
+}
+.upload-card{
+    background:#fff;
+    border:2px dashed #d1d5db;
+    border-radius:26px;
+    padding:60px;
+    text-align:center;
+    transition:.3s;
+    box-shadow:0 20px 55px rgba(0,0,0,.05);
+}
+.upload-card:hover{
+    border-color:#16a34a;
+    transform:translateY(-3px);
+    box-shadow:0 28px 65px rgba(22,163,74,.10);
+}
+.upload-icon{
+    width:88px;
+    height:88px;
+    margin:auto auto 24px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#ecfdf5,#fff);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.upload-title{
+    font-size:1.45rem;
+    font-weight:700;
+    margin-bottom:10px;
+}
+.upload-subtitle{
+    color:#6b7280;
+    margin-bottom:30px;
+}
+input[type=file]{
+    display:none;
+}
+.browse{
+    display:inline-block;
+    padding:14px 34px;
+    border-radius:14px;
+    background:#16a34a;
+    color:#fff;
+    font-weight:700;
+    text-decoration:none;
+    cursor:pointer;
+    transition:.25s;
+}
+.browse:hover{
+    background:#15803d;
+}
+.file-name{
+    margin-top:22px;
+    font-weight:600;
+    color:#374151;
+    min-height:24px;
+}
+.formats{
+    margin-top:18px;
+    color:#9ca3af;
+    font-size:.95rem;
+}
+.action{
+    margin-top:40px;
+    display:flex;
+    justify-content:center;
+}
+.verify-btn{
+    width:320px;
+    height:58px;
+    border:none;
+    border-radius:16px;
+    background:#16a34a;
+    color:#fff;
+    font-size:1.05rem;
+    font-weight:700;
+    transition:.25s;
+}
+.verify-btn:hover{
+    background:#15803d;
+    transform:translateY(-3px);
+    box-shadow:0 18px 40px rgba(22,163,74,.22);
+}
+.loading-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(255,255,255,.86);
+    backdrop-filter:blur(8px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    z-index:9999;
+}
+.spinner{
+    width:72px;
+    height:72px;
+    border-radius:50%;
+    border:6px solid #dcfce7;
+    border-top:6px solid #16a34a;
+    animation:spin .9s linear infinite;
+    margin-bottom:24px;
+}
+@keyframes spin{
+    to{transform:rotate(360deg);}
+}
+.loading-title{
+    font-size:1.35rem;
+    font-weight:700;
+    margin-bottom:8px;
+}
+.loading-subtitle{
+    color:#6b7280;
+}
+.result{
+    margin-top:40px;
+}
+@media(max-width:768px){
+    h1{font-size:2.3rem;}
+    .upload-card{padding:38px 24px;}
+    .verify-btn{width:100%;}
+}
+</style>
 </head>
-
-<body class="bg-light">
-
-<div class="container py-5">
-
-    <div class="row justify-content-center">
-
-        <div class="col-lg-8">
-
-            <div class="card shadow border-0">
-
-                <div class="card-body p-5">
-
-                    <h2 class="text-center mb-4">
-                        Verify Ownership
-                    </h2>
-
-                    <form
-                        action="/verify"
-                        method="post"
-                        enctype="multipart/form-data">
-
-                        <input
-                            class="form-control mb-4"
-                            type="file"
-                            name="file"
-                            accept=".png,.jpg,.jpeg"
-                            required>
-
-                        <div class="d-grid">
-
-                            <button
-                                class="btn btn-success btn-lg">
-
-                                Verify
-
-                            </button>
-
-                        </div>
-
-                    </form>
-
-                    {% if verified %}
-
-                    <hr>
-
-                    <div class="text-center">
-
-                        <img
-                            src="{{ picture }}"
-                            width="100"
-                            class="rounded-circle mb-3">
-
-                        <h3>Ownership Verified ✓</h3>
-
-                        <p class="mb-1">
-                            <strong>{{ name }}</strong>
-                        </p>
-
-                        <p class="text-muted">
-                            {{ email }}
-                        </p>
-
-                    </div>
-
-                    {% endif %}
-
-                    {% if error %}
-
-                    <hr>
-
-                    <div class="alert alert-danger">
-
-                        {{ error }}
-
-                    </div>
-
-                    {% endif %}
-
-                    <div class="text-center mt-4">
-
-                        <a
-                            href="/dashboard"
-                            class="btn btn-outline-secondary">
-
-                            Back to Dashboard
-
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
+<body>
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-title">Verifying Ownership...</div>
+    <div class="loading-subtitle">CipherVision is analyzing the invisible watermark.</div>
 </div>
+<div class="page">
+    <div class="container-box">
+        <a href="/dashboard" class="back">← Back to Dashboard</a>
+        <h1>Verify Ownership</h1>
+        <p class="subtitle">Verify the creator of an image protected using CipherVision's invisible neural watermark.</p>
+        <div class="upload-card">
+            <form id="verifyForm" action="/verify" method="post" enctype="multipart/form-data">
+                <div class="upload-icon">
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 16V4"/>
+                        <path d="M7 9L12 4L17 9"/>
+                        <path d="M4 20H20"/>
+                    </svg>
+                </div>
+                <div class="upload-title">Drag & Drop Image</div>
+                <div class="upload-subtitle">or browse from your computer</div>
+                <label class="browse" for="fileInput">Browse Files</label>
+                <input id="fileInput" type="file" name="file" accept=".png,.jpg,.jpeg" required>
+                <div class="file-name" id="fileName">No file selected</div>
+                <div class="formats">Supported formats: PNG • JPG • JPEG</div>
+                <div class="action">
+                    <button type="submit" class="verify-btn">Verify Ownership</button>
+                </div>
+            </form>
+        </div>
+        <div class="result">
+            {% if verified %}
+            <div class="modal fade" id="verifiedModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg rounded-4">
+                        <div class="modal-header">
+                            <h5 class="modal-title text-success">
+                                Ownership Verified
+                            </h5>
+                            <button
+                                type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal">
+                            </button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <img
+                                src="{{ picture }}"
+                                width="110"
+                                height="110"
+                                class="rounded-circle shadow-sm mb-4">
+                            <h3 class="fw-bold mb-3">
+                                {{ name }}
+                            </h3>
+                            {% if is_owner %}
+                            <p class="text-success fw-semibold">
+                                This image belongs to you.
+                            </p>
+                            <p class="text-muted">
+                                {{ email }}
+                            </p>
+                            {% else %}
+                            <p class="text-success fw-semibold">
+                                This image is protected by a valid CipherVision ownership watermark.
+                            </p>
+                            {% endif %}
+                        </div>
+                        <div class="modal-footer">
+                            <button
+                                type="button"
+                                class="btn btn-success"
+                                data-bs-dismiss="modal">
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
 
+            {% if error %}
+            <div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg rounded-4">
+                        <div class="modal-header">
+                            <h5 class="modal-title text-danger">Verification Failed</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">{{ error }}</div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+        const uploadCard=document.querySelector(".upload-card");
+        const fileInput=document.getElementById("fileInput");
+        const fileName=document.getElementById("fileName");
+        const form=document.getElementById("verifyForm");
+        const loadingOverlay=document.getElementById("loadingOverlay");
+        const allowedTypes=[
+            "image/png",
+            "image/jpeg"
+        ];
+        fileInput.addEventListener("change",function(){
+            if(fileInput.files.length===0){
+                fileName.textContent="No file selected";
+                return;
+            }
+            const file=fileInput.files[0];
+            if(!allowedTypes.includes(file.type)){
+                alert("Please upload a PNG or JPEG image.");
+                fileInput.value="";
+                fileName.textContent="No file selected";
+                return;
+            }
+            fileName.textContent=file.name;
+        });
+        uploadCard.addEventListener("dragover",function(event){
+            event.preventDefault();
+            uploadCard.style.borderColor="#16a34a";
+            uploadCard.style.background="#f6fef8";
+        });
+        uploadCard.addEventListener("dragleave",function(){
+            uploadCard.style.borderColor="#d1d5db";
+            uploadCard.style.background="#ffffff";
+        });
+        uploadCard.addEventListener("drop",function(event){
+            event.preventDefault();
+            uploadCard.style.borderColor="#d1d5db";
+            uploadCard.style.background="#ffffff";
+            const droppedFiles=event.dataTransfer.files;
+            if(droppedFiles.length>0){
+                const file=droppedFiles[0];
+                if(!allowedTypes.includes(file.type)){
+                    alert("Please upload a PNG or JPEG image.");
+                    return;
+                }
+                const dt=new DataTransfer();
+                dt.items.add(file);
+                fileInput.files=dt.files;
+                fileName.textContent=file.name;
+            }
+        });
+        form.addEventListener("submit",function(event){
+            if(fileInput.files.length===0){
+                event.preventDefault();
+                alert("Please select or drop an image.");
+                return;
+            }
+            loadingOverlay.style.display="flex";
+        });
+        document.addEventListener("DOMContentLoaded",function(){
+            {% if verified %}
+            new bootstrap.Modal(
+                document.getElementById("verifiedModal")
+            ).show();
+            {% endif %}
+
+            {% if error %}
+            new bootstrap.Modal(
+                document.getElementById("statusModal")
+            ).show();
+            {% endif %}
+        });
+        </script>
+    </div>
+</div>
 </body>
-
 </html>
