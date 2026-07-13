@@ -17,7 +17,10 @@ from app.services.embed_service import EmbedService
 from app.services.payload_encoder import PayloadEncoder
 from app.services.detect_service import DetectService
 from app.services.payload_decoder import PayloadDecoder
-from app.database.crud import get_user_by_owner_id
+from app.database.crud import (
+    get_user_by_owner_id,
+    create_watermark,
+)
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -143,6 +146,13 @@ async def embed_image(
             input_path,
             output_path,
             payload,
+        )
+
+        create_watermark(
+            db=db,
+            user_id=user.id,
+            filename=file.filename,
+            owner_identifier=user.owner_id,
         )
         filename = os.path.basename(output_path)
         return templates.TemplateResponse(

@@ -3,7 +3,7 @@ import secrets
 from sqlalchemy.orm import Session
 
 from app.database.models import User
-
+from app.database.models import Watermark
 
 def generate_owner_id():
 
@@ -69,3 +69,62 @@ def create_user(
     db.refresh(user)
 
     return user
+
+def create_watermark(
+    db: Session,
+    user_id,
+    filename: str,
+    owner_identifier: str,
+):
+
+    watermark = Watermark(
+        user_id=user_id,
+        filename=filename,
+        owner_identifier=owner_identifier,
+    )
+
+    db.add(watermark)
+
+    db.commit()
+
+    db.refresh(watermark)
+
+    return watermark
+
+
+def get_user_watermarks(
+    db: Session,
+    user_id,
+):
+
+    return (
+        db.query(Watermark)
+        .filter(Watermark.user_id == user_id)
+        .order_by(Watermark.created_at.desc())
+        .all()
+    )
+
+
+def increment_verified_count(
+    db: Session,
+    owner_identifier: str,
+):
+
+    watermark = (
+        db.query(Watermark)
+        .filter(
+            Watermark.owner_identifier == owner_identifier
+        )
+        .order_by(
+            Watermark.created_at.desc()
+        )
+        .first()
+    )
+
+    if watermark is None:
+
+        return
+
+    watermark.verified_count += 1
+
+    db.commit()

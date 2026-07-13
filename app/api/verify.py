@@ -15,7 +15,7 @@ from app.services.detect_service import DetectService
 from app.services.payload_decoder import PayloadDecoder
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-
+from app.database.crud import increment_verified_count
 
 limiter = Limiter(
     key_func=get_remote_address
@@ -120,6 +120,10 @@ async def verify_image(
                         "error": "Owner not found.",
                     },
                 )
+            increment_verified_count(
+                db=db,
+                owner_identifier=owner.owner_id,
+            )
             is_owner = str(owner.id) == current_user_id
             return templates.TemplateResponse(
                 request=request,
