@@ -16,6 +16,9 @@ from app.database.database import SessionLocal
 from app.database.models import User
 from app.services.embed_service import EmbedService
 from app.services.payload_encoder import PayloadEncoder
+from app.services.detect_service import DetectService
+from app.services.payload_decoder import PayloadDecoder
+from app.database.crud import get_user_by_owner_id
 
 router = APIRouter()
 
@@ -24,7 +27,7 @@ templates = Jinja2Templates(
 )
 
 encoder = PayloadEncoder()
-
+decoder = PayloadDecoder()
 
 @router.get("/embed", response_class=HTMLResponse)
 async def embed_page(request: Request):
@@ -95,6 +98,49 @@ async def embed_image(
             suffix,
             f"_watermarked{suffix}",
         )
+
+        decoded = None
+
+        try:
+
+            bits = DetectService.extract(
+                input_path
+            )
+
+            decoded = decoder.decode(
+                bits
+            )
+
+        except Exception:
+
+            decoded = None
+
+        if decoded is not None:
+
+            existing_owner = get_user_by_owner_id(
+                db,
+                decoded["identifier"],
+            )
+
+            if existing_owner is not None:
+
+                if existing_owner.id == user.id:
+
+                    return templates.TemplateResponse(
+                        request=request,
+                        name="embed.html",
+                        context={
+                            "info": "This image is already protected by your CipherVision account.",
+                        },
+                    )
+
+                return templates.TemplateResponse(
+                    request=request,
+                    name="embed.html",
+                    context={
+                        "error": f"This image already belongs to {existing_owner.full_name}. Embedding another watermark is not permitted.",
+                    },
+                )
 
         payload = encoder.encode(
             user.owner_id
