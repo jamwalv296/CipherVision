@@ -3,7 +3,7 @@ from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
-
+import os
 from app.auth.google import oauth
 from app.auth.jwt import create_access_token
 from app.database.crud import create_user
@@ -15,6 +15,8 @@ router = APIRouter()
 templates = Jinja2Templates(
     directory="app/templates"
 )
+
+IS_PRODUCTION = os.getenv("ENV") == "production"
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -81,7 +83,7 @@ async def auth_callback(request: Request):
             key="access_token",
             value=access_token,
             httponly=True,
-            secure=False,
+            secure=IS_PRODUCTION,
             samesite="lax",
             max_age=60 * 60 * 24,
         )
