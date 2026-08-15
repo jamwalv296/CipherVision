@@ -14,12 +14,11 @@
 
 <p align="center">
 
-![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
+![Python](https://img.shields.io/badge/Python-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi)
 ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-336791?logo=postgresql)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?logo=postgresql)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-7952B3?logo=bootstrap)
-![License](https://img.shields.io/badge/License-MIT-success)
 
 </p>
 
@@ -37,7 +36,7 @@ The platform combines artificial intelligence, computer vision, secure authentic
 
 CipherVision integrates the **PixelSeal** pretrained deep neural watermarking model for invisible image watermark embedding and extraction.
 
-The model is responsible for embedding an imperceptible ownership payload into an image and recovering it during verification. CipherVision extends this capability by integrating secure ownership management, BCH error correction, Google OAuth authentication, duplicate watermark detection, and a complete web application for digital ownership verification.
+The model is loaded through Meta's `videoseal` library and its pretrained checkpoint is fetched via the Hugging Face Hub at runtime (not bundled in the repo). It is responsible for embedding an imperceptible ownership payload into an image and recovering it during verification. CipherVision extends this capability by integrating secure ownership management, BCH error correction, Google OAuth authentication, duplicate watermark detection, and a complete web application for digital ownership verification.
 
 ## Problem Statement
 
@@ -65,9 +64,9 @@ Extracts embedded ownership information from protected images and verifies the r
 Before embedding, CipherVision automatically analyzes uploaded images to determine whether they already contain ownership information.
 
 If an existing watermark is detected:
-- Duplicate embedding is blocked.
-- The original owner is identified.
-- Ownership-overwriting attacks are prevented.
+- If it belongs to the current user, embedding is skipped and they're informed the image is already protected under their account.
+- If it belongs to someone else, embedding is blocked and an ownership conflict message is shown.
+- Ownership-overwriting attacks are prevented either way.
 
 ### Privacy-Aware Verification
 Verification results display:
@@ -96,35 +95,36 @@ The registered email address is revealed only when the authenticated owner verif
 
 ### Backend
 - FastAPI
-- SQLAlchemy
-- PostgreSQL (Neon)
-- Jinja2
 - Uvicorn
+- Jinja2 (`fastapi.templating`)
+- Starlette `SessionMiddleware`
+- python-dotenv
+- python-multipart (file uploads)
+
+### Database
+- SQLAlchemy (ORM, `DeclarativeBase`)
+- PostgreSQL (via `psycopg2-binary`)
 
 ### Authentication
-- Google OAuth 2.0
-- JWT Authentication
-- Secure Cookie Sessions
+- Google OAuth 2.0 (Authlib's `starlette_client`)
+- JWT (`python-jose`)
+- HTTP-only cookie sessions
 
-### Artificial Intelligence
-- PyTorch
-- PixelSeal Pretrained Neural Watermarking Model
-- BCH Error Correction (bchlib)
-- OpenCV
-- NumPy
+### AI / Watermarking
+- PyTorch + Torchvision
+- `videoseal` (loads the pretrained PixelSeal checkpoint via `setup_model_from_checkpoint`)
+- `huggingface-hub` (checkpoint retrieval)
+- Pillow + NumPy (image I/O and tensor conversion)
+- `bchlib` (BCH error correction for the encoded payload)
 
 ### Frontend
-- HTML5
-- CSS3
-- Bootstrap 5
-- JavaScript
+- Jinja2-rendered HTML templates
+- Bootstrap 5.3.7 (via CDN)
+- Google Fonts (Manrope, Parisienne)
+- Vanilla JavaScript (upload interactions in `embed.html` / `verify.html`)
 
-### Security
-- Pillow Image Validation
-- File Size Validation
-- Duplicate Watermark Detection
-- Rate Limiting (SlowAPI)
-- Privacy-Aware Verification
+### Rate Limiting / Abuse Prevention
+- SlowAPI (`Limiter`, per-route rate limits on `/embed` and `/verify`)
 
 ---
 
@@ -156,7 +156,7 @@ The registered email address is revealed only when the authenticated owner verif
                              +-----------------------------+----------------------------+
                                                            |
                                                            v
-                                              PostgreSQL (Neon Database)
+                                                 PostgreSQL Database
 ```
 
 ---
@@ -167,25 +167,25 @@ The registered email address is revealed only when the authenticated owner verif
 CipherVision/
 │
 ├── app/
-│   ├── api/                 # Route handlers
-│   ├── auth/                # Google OAuth configuration
-│   ├── core/                # Application configuration
-│   ├── database/            # Models and CRUD operations
-│   ├── services/            # AI watermarking services
-│   ├── static/              # CSS, JavaScript, images
-│   ├── templates/           # Jinja2 templates
-│   └── main.py
+│   ├── api/                 # Route handlers (auth, dashboard, embed, verify)
+│   ├── auth/                # Google OAuth (Authlib) + JWT helpers
+│   ├── core/                # PixelSeal model loading (videoseal)
+│   ├── database/            # SQLAlchemy models and CRUD operations
+│   ├── services/            # Embed/detect services, BCH payload encode/decode
+│   ├── static/               # CSS, JS, images
+│   ├── templates/           # Jinja2 templates (login, dashboard, embed, verify)
+│   └── main.py               # FastAPI app, middleware, router registration
 │
-├── checkpoints/             # Pretrained AI models
-├── uploads/                 # Temporary uploaded files
-├── outputs/                 # Generated watermarked images
-├── scripts/
-├── tests/
+├── scripts/                  # Dev/maintenance scripts (create_tables, BCH & JWT
+│                              # tests, DB/CRUD checks) — not a pytest test suite
 │
 ├── requirements.txt
-├── .env
 └── README.md
 ```
+
+Uploaded files and generated watermarked images are written to the system temp
+directory at request time (`tempfile`), not to project folders. `.env` (secrets)
+and the downloaded PixelSeal checkpoint are gitignored and not part of the repo.
 
 ---
 
@@ -222,7 +222,7 @@ Neural Watermarking                |
 
 ### Prerequisites
 - Python 3.11+
-- PostgreSQL database (or a Neon account)
+- PostgreSQL database (any provider — connected via `DATABASE_URL`)
 - Google Cloud project with OAuth 2.0 credentials
 
 ### Steps
@@ -240,17 +240,18 @@ source venv/bin/activate      # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # Configure environment variables
-cp .env.example .env
-# Fill in DATABASE_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, JWT_SECRET, etc.
+# Create a .env file in the project root with:
+#   DATABASE_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, JWT_SECRET, ENV
 
-# Run database migrations (if applicable)
-alembic upgrade head
+# Create the database tables
+python scripts/create_tables.py
 
 # Start the application
 uvicorn app.main:app --reload
 ```
 
-The application will be available at `http://localhost:8000`.
+The application will be available at `http://localhost:8000`. On first run, the
+PixelSeal checkpoint is downloaded automatically via `videoseal`/Hugging Face Hub.
 
 ---
 
@@ -258,13 +259,16 @@ The application will be available at `http://localhost:8000`.
 
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/auth/login` | Redirects to Google OAuth consent screen |
-| GET | `/auth/callback` | Handles OAuth callback and issues JWT session |
-| POST | `/auth/logout` | Clears session and logs the user out |
-| POST | `/watermark/embed` | Uploads and embeds a watermark into an image |
-| POST | `/watermark/verify` | Uploads an image and verifies embedded ownership |
-| GET | `/dashboard` | Returns the authenticated user's dashboard |
-| GET | `/user/profile` | Returns the current authenticated user's profile |
+| GET | `/` | Login / landing page |
+| GET | `/login` | Redirects to Google OAuth consent screen |
+| GET | `/auth/callback` | Handles OAuth callback, creates/looks up the user, and sets the JWT cookie |
+| GET | `/logout` | Clears the session cookie and logs the user out |
+| GET | `/dashboard` | Authenticated user's dashboard |
+| GET | `/embed` | Embed page (requires auth) |
+| POST | `/embed` | Uploads an image, checks for an existing watermark, embeds a new one, and stores a `Watermark` record |
+| GET | `/download/{filename}` | Downloads the generated watermarked image |
+| GET | `/verify` | Verify page (requires auth) |
+| POST | `/verify` | Uploads an image, extracts and BCH-decodes the payload, and returns owner details |
 
 ---
 
@@ -273,20 +277,27 @@ The application will be available at `http://localhost:8000`.
 ```text
 Users
 ------------------
-id (PK)
-name
-email
-profile_picture_url
+id (PK, UUID)
+google_id (unique)
+email (unique)
+full_name
+picture_url
+owner_id (unique, 16-char identifier — assigned once per user)
 created_at
 
 Watermarks
 ------------------
 id (PK)
-owner_id (FK -> Users.id)
-ownership_id (16-char identifier)
-bch_encoded_payload
+user_id (FK -> Users.id)
+filename
+owner_identifier (matches the owning user's owner_id)
+verified_count
 created_at
 ```
+
+Note: `owner_id` is generated once per user at account creation and reused for
+every image they protect — it is not regenerated per watermark. The BCH-encoded
+payload itself is computed on the fly during embed/verify and is not persisted.
 
 ---
 
